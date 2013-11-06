@@ -5,14 +5,19 @@
 using namespace std;
 
 void initdeck(void);
-int drawCard(int,char);
+void drawCards(int,char);
 int randomNumber(int,int);
-void resetDeck();
+void resetDeck(void);
+void firstDraw(void);
 
-int g_deck [52]; // Create a global int array to contain the deck
-int g_availableCards[52];
-int g_playersHand[11] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-int g_dealersHand[10] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+short g_deck [52]; // Create a global int array to contain the deck
+short g_positionInDeck; // Set to short because var will never be above 52. Memory Saver, didnt set to char because it would require lots of casting.
+short g_availableCards[52];
+
+short g_playersHand[11];
+short g_playersCardTotal;
+short g_dealersHand[10];
+short g_dealersCardTotal;
 
 int randomNumber(int minimum, int maximum)
 {
@@ -22,11 +27,24 @@ int randomNumber(int minimum, int maximum)
 void resetDeck(void)
 {
 	srand(time(NULL));
-
-	for (int i = 0; i < 52; i++)
+	for (int i = 0; i < 11; i++)
 	{
-		g_availableCards[i] = 1;
+		g_playersHand[i] = -1;
+		
+		if (i < 10)
+		{
+			g_dealersHand[i] = -1;
+		}
 	}
+	g_playersCardTotal = 0;
+	g_dealersCardTotal = 0;
+
+	for (int j = 0; j < 52; j++)
+	{
+		g_availableCards[j] = 1;
+	}
+	g_positionInDeck = 0;
+	
 }
 
 void initDeck(void)
@@ -61,45 +79,50 @@ void initDeck(void)
 void firstDraw(void)
 {
 	//Draw cards for first draw and hides dealer second card
-	drawCards(2,P);
-	drawCards(2,D);
+	drawCards(2,'P');
+	drawCards(2,'D');
 	//TODO: hide second dealer card function!
 
 }
 
-int drawCards(int amount, char toWho)  
+void drawCards(int amount, char toWho)  
 {
 	//toWho should contain a D for Dealer or P for Player
-	int counter = 0;
-	int timeout = 0;
 	int cardsDrawn[2]; //2 should be the maximum amount of concurrent card draws.
 
-	if (amount < 0)
+	if (amount < 0 || amount > 2)
 	{
-		cout << "ERROR: No cards were requested";
-		return -1;
+		cout << "FATAL ERROR: Invalid amount of cards were requested";
 	}
 	
-	while (counter < amount)
-	{	
-		/*if (timeout > 1000)
-		{
-			cout << "ERROR: Draw card loop has failed to draw any cards after 1000 loops. Aborting";
-			return -1;
-		}
+	switch (toWho)
+	{
+		case 'P':
+			for (int i = 0; i < amount; i++)
+			{
+				g_playersHand[g_playersCardTotal] = g_deck[g_positionInDeck];
+				g_playersCardTotal++;
+				g_positionInDeck++;
+			}
+		break;
 
-		timeout++;*/
-
-		if (g_deck[cardValue] == 0) 
-		{
-			//Dont increase counter to force a redraw.
-		}
-		else
-		{
-			cardsDrawn[counter] = cardValue;
-			counter++;
-		}
+		case 'D':
+			for (int i = 0; i < amount; i++)
+			{
+				g_dealersHand[g_dealersCardTotal] = g_deck[g_positionInDeck];
+				g_dealersCardTotal++;
+				g_positionInDeck++;
+			}
+		break;
+		
+		default:
+			cout << "FATAL ERROR: Invalid toWho value passed to drawCards function";
+		break;
 	}
+	/*for (int i = 0; i < amount; i++)
+	{	
+		cardsDrawn[i] = cardValue;	
+	}*/
 	 
 }
 
@@ -113,7 +136,10 @@ int main(void)
 		cout << g_deck[i] << endl;
 	}*/
 	firstDraw();
+	//debug hand display
 	cout << "Player Hand: "<< g_playersHand[0] << ", " << g_playersHand[1];
+	cout << "Player Hand: "<< g_dealersHand[0] << ", " << g_dealersHand[1];
+
 	
 
 
