@@ -1,14 +1,25 @@
 #include <iostream>
 #include <time.h>
 #include <array>
+#include <string>
 
 using namespace std;
+
+// Create data structures and put them in arrays 
 
 void initdeck(void);
 void drawCards(int,char);
 int randomNumber(int,int);
 void resetDeck(void);
 void firstDraw(void);
+bool checkForBlackjack(char);
+
+struct CardStruct
+{
+	short card;
+	char cardValue;
+	string cardName;
+};
 
 short g_deck [52]; // Create a global int array to contain the deck
 short g_positionInDeck; // Set to short because var will never be above 52. Memory Saver, didnt set to char because it would require lots of casting.
@@ -76,6 +87,26 @@ void initDeck(void)
 
 }
 
+bool checkForBlackjack(char whoseCard)
+{
+	switch (whoseCards)
+	{
+		case 'P':
+			
+		break;
+
+		case 'D':
+
+		break;
+
+		default:
+			cout << "FATAL ERROR: check for blackjack was passed invalid variable (" << whoseCards << ")";
+		break;
+	}
+
+	return false;
+}
+
 void firstDraw(void)
 {
 	//Draw cards for first draw and hides dealer second card
@@ -128,18 +159,19 @@ void drawCards(int amount, char toWho)
 
 int main(void) 
 {
+	
 	resetDeck();
 	initDeck();
 	// debug loop
-	/*for (int i = 0; i < 52; i++)
+	for (int i = 0; i < 52; i++)
 	{
 		cout << g_deck[i] << endl;
-	}*/
+	}
 	firstDraw();
 	//debug hand display
 	cout << "Player Hand: "<< g_playersHand[0] << ", " << g_playersHand[1];
 	cout << "Player Hand: "<< g_dealersHand[0] << ", " << g_dealersHand[1];
-
+	
 	
 
 
