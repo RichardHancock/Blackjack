@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//Function Prototypes
 void shuffleDeck(void);
 void drawCards(int,char);
 int randomNumber(int,int);
@@ -31,10 +32,10 @@ const char SPADES = '\x06';
 const string CARDNAMES[13] = {"Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"};
 const short NUM_OF_SUITS = 4;
 const short NUM_OF_CARDS_PER_SUIT = 13;
+const short NUM_OF_CARDS_IN_DECK = 52;
 
-Card g_deck[52]; // Create a global int array to contain the deck
+Card g_deck[NUM_OF_CARDS_IN_DECK]; // Create a global int array to contain the deck
 short g_positionInDeck; // Set to short because var will never be above 52. Memory Saver, didnt set to char because it would require lots of casting.
-short g_availableCards[52];
 
 Card g_playersHand[11];
 short g_playersCardTotal;
@@ -68,10 +69,6 @@ string suitSwitch(string suit)
 	return "Done";
 }
 
-void deckFiller()
-{
-	
-}
 void resetCards(void)
 {
 	// Seed random number generator
@@ -142,9 +139,26 @@ void resetCards(void)
 
 void shuffleDeck(void)
 {
+	Card temp;
+	int index1 = 0, index2 = 0;
 
-	Card temp[1];
+	for (index1 = 0; index1 < NUM_OF_CARDS_IN_DECK; index1++)
+	{
+		//With pointer might be able to make a copy struct functions
+		index2 = randomNumber(0,51);
+		
+		temp.name = g_deck[index1].name;
+		temp.suit = g_deck[index1].suit;
+		temp.value = g_deck[index1].value;
+		
+		g_deck[index1].name = g_deck[index2].name;
+		g_deck[index1].suit = g_deck[index2].suit;
+		g_deck[index1].value = g_deck[index2].value;
 
+		g_deck[index2].name = temp.name;
+		g_deck[index2].suit = temp.suit;
+		g_deck[index2].value = temp.value;
+	}
 
 	/*int i = 0;
 	int timeout = 1000;
@@ -250,7 +264,7 @@ int main(void)
 {
 	
 	resetCards();
-	
+	shuffleDeck();
 	// debug loop
 	for (int i = 0; i < 52; i++)
 	{
@@ -261,8 +275,5 @@ int main(void)
 	//cout << "Player Hand: "<< g_playersHand[0] << ", " << g_playersHand[1];
 	//cout << "Dealer Hand: "<< g_dealersHand[0] << ", " << g_dealersHand[1];
 	
-	
-
-
 	return 0;
 }
