@@ -5,62 +5,148 @@
 
 using namespace std;
 
-// Create data structures and put them in arrays 
-
-void initdeck(void);
+void shuffleDeck(void);
 void drawCards(int,char);
 int randomNumber(int,int);
-void resetDeck(void);
+void resetCards(void);
+string suitSwitch(string);
 void firstDraw(void);
 bool checkForBlackjack(char);
 
-struct CardStruct
+struct Card
 {
-	short card;
-	char cardValue;
-	string cardName;
+	string name;
+	short value; // 0 for ace due to it being 1 or 11
+	string suit;
 };
 
-short g_deck [52]; // Create a global int array to contain the deck
+//Card Values
+const short ACE = 0;
+const short FACECARD = 10;
+//Special Characters
+const char HEARTS = '\x03';
+const char DIAMONDS = '\x04';
+const char CLUBS = '\x05';
+const char SPADES = '\x06';
+const string CARDNAMES[13] = {"Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"};
+const short NUM_OF_SUITS = 4;
+const short NUM_OF_CARDS_PER_SUIT = 13;
+
+Card g_deck[52]; // Create a global int array to contain the deck
 short g_positionInDeck; // Set to short because var will never be above 52. Memory Saver, didnt set to char because it would require lots of casting.
 short g_availableCards[52];
 
-short g_playersHand[11];
+Card g_playersHand[11];
 short g_playersCardTotal;
-short g_dealersHand[10];
+Card g_dealersHand[10];
 short g_dealersCardTotal;
+
 
 int randomNumber(int minimum, int maximum)
 {
 	return rand() % (maximum - minimum + 1) + minimum;
 }
 
-void resetDeck(void)
+string suitSwitch(string suit)
 {
+	
+	if (suit == "Hearts")
+	{
+		return "Diamonds";
+	}
+
+	if (suit == "Diamonds")
+	{
+		return "Clubs";
+	}
+	
+	if (suit == "Clubs")
+	{
+		return "Spades";
+	}
+	
+	return "Done";
+}
+
+void deckFiller()
+{
+	
+}
+void resetCards(void)
+{
+	// Seed random number generator
 	srand(time(NULL));
+
+	// Reset Hands
 	for (int i = 0; i < 11; i++)
 	{
-		g_playersHand[i] = -1;
+		g_playersHand[i].name = "";
+		g_playersHand[i].value = -1;
+		g_playersHand[i].suit = "";
 		
 		if (i < 10)
 		{
-			g_dealersHand[i] = -1;
+			g_dealersHand[i].name = "";
+			g_dealersHand[i].value = -1;
+			g_dealersHand[i].suit = "";
 		}
 	}
 	g_playersCardTotal = 0;
 	g_dealersCardTotal = 0;
 
-	for (int j = 0; j < 52; j++)
+
+	// Reset Deck
+	string currentSuit = "Hearts";
+	g_positionInDeck = 0;
+
+	for (int j = 1; j <= NUM_OF_SUITS; j++)
 	{
-		g_availableCards[j] = 1;
+		for (int k = 1; k <= NUM_OF_CARDS_PER_SUIT; k++)
+		{
+			
+			if (k >= 2 && k <= 10)
+			{
+				g_deck[g_positionInDeck].name = CARDNAMES[k-1];
+				g_deck[g_positionInDeck].value = k;
+				g_deck[g_positionInDeck].suit = currentSuit;
+			}
+			else
+			{
+
+				if (k >= 11 && k <= NUM_OF_CARDS_PER_SUIT) 
+				{
+					g_deck[g_positionInDeck].name = CARDNAMES[k-1];
+					g_deck[g_positionInDeck].value = 10;
+					g_deck[g_positionInDeck].suit = currentSuit;
+				}
+				else
+				{
+					if (k == 1) 
+					{
+						g_deck[g_positionInDeck].name = CARDNAMES[0];
+						g_deck[g_positionInDeck].value = ACE;
+						g_deck[g_positionInDeck].suit = currentSuit;
+					}
+				}
+
+			}
+			
+			g_positionInDeck++;
+		}
+		currentSuit = suitSwitch(currentSuit);
 	}
+
 	g_positionInDeck = 0;
 	
 }
 
-void initDeck(void)
+void shuffleDeck(void)
 {
-	int i = 0;
+
+	Card temp[1];
+
+
+	/*int i = 0;
 	int timeout = 1000;
 	
 	while(i < 52)
@@ -83,12 +169,13 @@ void initDeck(void)
 			cout << "ERROR: initDeck loop took other 1000 attempts.\n";
 			break;
 		}
-	}
+	}*/
 
 }
 
 bool checkForBlackjack(char whoseCard)
 {
+	/*
 	switch (whoseCards)
 	{
 		case 'P':
@@ -103,8 +190,9 @@ bool checkForBlackjack(char whoseCard)
 			cout << "FATAL ERROR: check for blackjack was passed invalid variable (" << whoseCards << ")";
 		break;
 	}
-
+	*/
 	return false;
+	
 }
 
 void firstDraw(void)
@@ -118,6 +206,7 @@ void firstDraw(void)
 
 void drawCards(int amount, char toWho)  
 {
+	/*
 	//toWho should contain a D for Dealer or P for Player
 	int cardsDrawn[2]; //2 should be the maximum amount of concurrent card draws.
 
@@ -150,27 +239,27 @@ void drawCards(int amount, char toWho)
 			cout << "FATAL ERROR: Invalid toWho value passed to drawCards function";
 		break;
 	}
-	/*for (int i = 0; i < amount; i++)
+	for (int i = 0; i < amount; i++)
 	{	
 		cardsDrawn[i] = cardValue;	
 	}*/
-	 
+    
 }
 
 int main(void) 
 {
 	
-	resetDeck();
-	initDeck();
+	resetCards();
+	
 	// debug loop
 	for (int i = 0; i < 52; i++)
 	{
-		cout << g_deck[i] << endl;
+		cout << i << ", " << g_deck[i].name << ", " << g_deck[i].value << ", " << g_deck[i].suit << endl;
 	}
 	firstDraw();
 	//debug hand display
-	cout << "Player Hand: "<< g_playersHand[0] << ", " << g_playersHand[1];
-	cout << "Player Hand: "<< g_dealersHand[0] << ", " << g_dealersHand[1];
+	//cout << "Player Hand: "<< g_playersHand[0] << ", " << g_playersHand[1];
+	//cout << "Dealer Hand: "<< g_dealersHand[0] << ", " << g_dealersHand[1];
 	
 	
 
