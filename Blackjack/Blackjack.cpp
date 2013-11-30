@@ -5,20 +5,25 @@
 
 using namespace std;
 
-//Function Prototypes
-void shuffleDeck(void);
-void drawCards(int,char);
-int randomNumber(int,int);
-void resetCards(void);
-string suitSwitch(string);
-//bool checkForBlackjack(char);
-
 struct Card
 {
 	string name;
 	short value; // 0 for ace due to it being 1 or 11
 	string suit;
 };
+
+//Function Prototypes
+void shuffleDeck(void);
+void drawCards(int,char);
+int randomNumber(int,int);
+void resetCards(void);
+string suitSwitch(string);
+void checkForBlackjack(short);
+void mainGameLoop();
+short playersTurn();
+short dealersTurn();
+int handTotal(Card,short);
+bool isBustCheck(int);
 
 //Card Values
 const short ACE = 0;
@@ -33,21 +38,46 @@ const string CARDNAMES[13] = {"Ace","2","3","4","5","6","7","8","9","10","Jack",
 const short NUM_OF_SUITS = 4;
 const short NUM_OF_CARDS_PER_SUIT = 13;
 const short NUM_OF_CARDS_IN_DECK = 52;
+
+//Player Actions
+const short HIT = 1; 
+const short STAND = 2;
+
+//Identifiers
 const short PLAYER = 1;
 const short DEALER = 2;
+
+//Turn States
+const short NORMAL = 1;
+const short BLACKJACK = 2;
+const short BUST = 3;
 
 Card g_deck[NUM_OF_CARDS_IN_DECK]; // Create a global int array to contain the deck
 short g_positionInDeck;
 
 Card g_playersHand[11];
-short g_playersCardTotal;
+short g_playersCardCount;
 Card g_dealersHand[10];
-short g_dealersCardTotal;
+short g_dealersCardCount;
 
+int g_playerMoney = 1000;
 
 int randomNumber(int minimum, int maximum)
 {
 	return rand() % (maximum - minimum + 1) + minimum;
+}
+
+int handTotal(Card hand[], short cardCount)
+{	
+	short total = 0;
+	short currentCardNum = 0;
+
+	for(; currentCardNum < cardCount; currentCardNum++)
+	{
+		total += hand[currentCardNum].value;
+	}
+	
+	return total;
 }
 
 string suitSwitch(string suit)
@@ -90,8 +120,8 @@ void resetCards(void)
 			g_dealersHand[i].suit = "";
 		}
 	}
-	g_playersCardTotal = 0;
-	g_dealersCardTotal = 0;
+	g_playersCardCount = 0;
+	g_dealersCardCount = 0;
 
 
 	// Reset Deck
@@ -163,16 +193,16 @@ void shuffleDeck(void)
 	}
 }
 
-/*bool checkForBlackjack(char whoseCard)
+void checkForBlackjack(short whoseCard) //TODO
 {
-	
+	/* TODO
 	switch (whoseCards)
 	{
-		case 'P':
+		case PLAYER:
 			
 		break;
 
-		case 'D':
+		case DEALER:
 
 		break;
 
@@ -180,10 +210,8 @@ void shuffleDeck(void)
 			cout << "FATAL ERROR: check for blackjack was passed invalid variable (" << whoseCards << ")";
 		break;
 	}
-	
-	return false;
-	
-}*/
+	*/
+}
 
 void drawCards(int amount, short toWho)  
 {
@@ -199,11 +227,11 @@ void drawCards(int amount, short toWho)
 		case PLAYER:
 			for (int i = 0; i < amount; i++)
 			{
-				g_playersHand[g_playersCardTotal].name = g_deck[g_positionInDeck].name;
-				g_playersHand[g_playersCardTotal].value = g_deck[g_positionInDeck].value;
-				g_playersHand[g_playersCardTotal].suit = g_deck[g_positionInDeck].suit;
+				g_playersHand[g_playersCardCount].name = g_deck[g_positionInDeck].name;
+				g_playersHand[g_playersCardCount].value = g_deck[g_positionInDeck].value;
+				g_playersHand[g_playersCardCount].suit = g_deck[g_positionInDeck].suit;
 
-				g_playersCardTotal++;
+				g_playersCardCount++;
 				g_positionInDeck++;
 			}
 		break;
@@ -211,11 +239,11 @@ void drawCards(int amount, short toWho)
 		case DEALER:
 			for (int i = 0; i < amount; i++)
 			{
-				g_dealersHand[g_dealersCardTotal].name = g_deck[g_positionInDeck].name;
-				g_dealersHand[g_dealersCardTotal].value = g_deck[g_positionInDeck].value;
-				g_dealersHand[g_dealersCardTotal].suit = g_deck[g_positionInDeck].suit;
+				g_dealersHand[g_dealersCardCount].name = g_deck[g_positionInDeck].name;
+				g_dealersHand[g_dealersCardCount].value = g_deck[g_positionInDeck].value;
+				g_dealersHand[g_dealersCardCount].suit = g_deck[g_positionInDeck].suit;
 
-				g_dealersCardTotal++;
+				g_dealersCardCount++;
 				g_positionInDeck++;
 			}
 		break;
@@ -226,22 +254,162 @@ void drawCards(int amount, short toWho)
 	}
 }
 
+bool isBustCheck(int cardTotal)
+{
+	if (cardTotal > 21) 
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void mainGameLoop()
+{
+	bool gameState = true;
+
+	while(gameState == true)
+	{
+		//Betting System
+		
+		drawCards(2, PLAYER);
+		drawCards(2, DEALER);
+		// Screen update function
+
+		if (playersTurn() == BUST)
+		{
+			cout << "Player busted, Dealer Wins!\n";
+		}
+		else
+		{
+			if (dealersTurn() == BUST)
+			{
+				cout << "Dealer busted, Player Wins!\n";
+			}
+			else
+			{
+				short playersTotal = handTotal(g_playersHand, g_playersCardCount);
+				short dealersTotal = handTotal(g_dealersHand, g_dealersCardCount);
+
+				if(playersTotal == dealersTotal)
+				{
+					//Draw
+					cout << "Draw!\n";
+				}
+				else
+				{
+					if(playersTotal > dealersTotal)
+					{
+						//PlayerWins
+						cout << "Player Wins!\n";
+					}
+					else
+					{
+						//DealerWins
+						cout << "Dealer Wins!\n";
+					}
+				}
+			}
+		}
+
+		if (g_positionInDeck > 51) {
+			//Deck Finished
+			gameState = false;
+		}
+		
+	}
+}
+
+short playersTurn()
+{
+	bool turnContinuing = true;
+	int playersCommand = 0;
+
+	//blackjack check
+	while(turnContinuing == true)
+	{
+		cout << "Dealers Hand Total: " << handTotal(g_dealersHand, g_dealersCardCount) << endl;
+		cout << "Your Hand Total: " << handTotal(g_playersHand, g_playersCardCount) << endl;
+		cout << "Hit or Stand:\n";
+		cin >> playersCommand;
+		// Need input validation/conversion later
+		switch(playersCommand)
+		{
+			case 1:
+				//hit
+				drawCards(1,PLAYER);
+				if(isBustCheck(handTotal(g_playersHand, g_playersCardCount)) == true)
+				{
+					//maybe replace with ternary
+					return BUST;
+				}
+				break;
+			case 2:
+				//stand
+				turnContinuing = false;
+			break;
+			default:
+				turnContinuing = false;
+				cout << "ERROR: 1 or 2 was not inputted";
+			break;
+		}
+	}
+	return NORMAL;
+}
+
+short dealersTurn() 
+{
+	bool turnContinuing = true;
+
+	//blackjack check
+	while(turnContinuing == true)
+	{
+		cout << "Dealers Hand Total: " << handTotal(g_dealersHand, g_dealersCardCount) << endl;
+
+		if(handTotal(g_dealersHand, g_dealersCardCount) < 17)
+		{
+			//hit
+			drawCards(1,DEALER);
+			if (isBustCheck(handTotal(g_dealersHand, g_dealersCardCount)) == true)
+			{
+				return BUST;
+			}
+		}
+		else
+		{
+			//stand
+			turnContinuing = false;
+		}
+	}
+	return NORMAL;
+}
+
 int main(void) 
 {
 	
 	resetCards();
 	shuffleDeck();
-	// debug loop
+
+	mainGameLoop();
+	
+	/* debug loop
 	for (int i = 0; i < 52; i++)
 	{
 		cout << i << ", " << g_deck[i].name << ", " << g_deck[i].value << ", " << g_deck[i].suit << endl;
 	}
 
-	//debug hand display
+	debug hand display
 	drawCards(2,PLAYER);
 	drawCards(2,DEALER);
 	cout << "Player Hand: "<< g_playersHand[0].name << ", " << g_playersHand[0].value << ", " <<  g_playersHand[0].suit << ";\n" << g_playersHand[1].name << ", " << g_playersHand[1].value << ", " << g_playersHand[1].suit << ";" << endl;
 	cout << "Dealer Hand: "<< g_dealersHand[0].name << ", " << g_dealersHand[0].value << ", " <<  g_dealersHand[0].suit << ";\n" << g_dealersHand[1].name << ", " << g_dealersHand[1].value << ", " << g_dealersHand[1].suit << ";" << endl;
+	*/
+	//Menu loop
+	//Cin plus validation
+	//Switch statement
+	//End Menu loop
 	
 	return 0;
 }
