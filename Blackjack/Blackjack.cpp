@@ -16,7 +16,7 @@ struct Card
 void shuffleDeck(void);
 void drawCards(int,char);
 int randomNumber(int,int);
-void resetCards(void);
+void resetDeck(void);
 string suitSwitch(string);
 void checkForBlackjack(short);
 void mainGameLoop();
@@ -24,6 +24,7 @@ short playersTurn();
 short dealersTurn();
 int handTotal(Card,short);
 bool isBustCheck(int);
+void resetHands(void);
 
 //Card Values
 const short ACE = 0;
@@ -101,12 +102,8 @@ string suitSwitch(string suit)
 	return "Done";
 }
 
-void resetCards(void)
+void resetHands(void)
 {
-	// Seed random number generator
-	srand(time(NULL));
-
-	// Reset Hands
 	for (int i = 0; i < 11; i++)
 	{
 		g_playersHand[i].name = "";
@@ -122,7 +119,12 @@ void resetCards(void)
 	}
 	g_playersCardCount = 0;
 	g_dealersCardCount = 0;
+}
 
+void resetDeck(void)
+{
+	// Seed random number generator
+	srand(time(NULL));
 
 	// Reset Deck
 	string currentSuit = "Hearts";
@@ -313,7 +315,7 @@ void mainGameLoop()
 				}
 			}
 		}
-
+		resetHands();
 		if (g_positionInDeck > 51) {
 			//Deck Finished
 			gameState = false;
@@ -389,7 +391,8 @@ short dealersTurn()
 int main(void) 
 {
 	
-	resetCards();
+	resetDeck();
+	resetHands();
 	shuffleDeck();
 
 	mainGameLoop();
