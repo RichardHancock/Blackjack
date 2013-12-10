@@ -25,6 +25,8 @@ short dealersTurn();
 int handTotal(Card,short);
 bool isBustCheck(int);
 void resetHands(void);
+void menuValidation(void);
+void actionValidation(void);
 
 //Card Values
 const short ACE = 0;
@@ -215,6 +217,16 @@ void checkForBlackjack(short whoseCard) //TODO
 	*/
 }
 
+void menuValidation(void) 
+{
+
+}
+
+void actionValidation(void)
+{
+	
+}
+
 void drawCards(int amount, short toWho)  
 {
 	Card cardsDrawn[2]; //2 should be the maximum amount of concurrent card draws.
@@ -233,6 +245,21 @@ void drawCards(int amount, short toWho)
 				g_playersHand[g_playersCardCount].value = g_deck[g_positionInDeck].value;
 				g_playersHand[g_playersCardCount].suit = g_deck[g_positionInDeck].suit;
 
+				if (i == 0) 
+				{
+					cout << "Player drew ";
+				}
+
+				cout << g_playersHand[g_playersCardCount].name << " of " << g_playersHand[g_playersCardCount].suit;
+				if (i < amount - 1)
+				{
+					cout << " and ";
+				}
+				else
+				{
+					cout << endl;
+				}
+
 				g_playersCardCount++;
 				g_positionInDeck++;
 			}
@@ -244,6 +271,23 @@ void drawCards(int amount, short toWho)
 				g_dealersHand[g_dealersCardCount].name = g_deck[g_positionInDeck].name;
 				g_dealersHand[g_dealersCardCount].value = g_deck[g_positionInDeck].value;
 				g_dealersHand[g_dealersCardCount].suit = g_deck[g_positionInDeck].suit;
+
+				if (i == 0) 
+				{
+					cout << "Dealer drew ";
+				}
+
+				cout << g_dealersHand[g_dealersCardCount].name << " of " << g_dealersHand[g_dealersCardCount].suit;
+
+				if (i < amount - 1)
+				{
+					cout << " and ";
+				}
+				else
+				{
+					cout << endl;
+				}
+
 
 				g_dealersCardCount++;
 				g_positionInDeck++;
@@ -282,13 +326,13 @@ void mainGameLoop()
 
 		if (playersTurn() == BUST)
 		{
-			cout << "Player busted, Dealer Wins!\n";
+			cout << "Player busted, Dealer Wins!\n\n";
 		}
 		else
 		{
 			if (dealersTurn() == BUST)
 			{
-				cout << "Dealer busted, Player Wins!\n";
+				cout << "Dealer busted, Player Wins!\n\n";
 			}
 			else
 			{
@@ -298,19 +342,19 @@ void mainGameLoop()
 				if(playersTotal == dealersTotal)
 				{
 					//Draw
-					cout << "Draw!\n";
+					cout << "Draw!\n\n";
 				}
 				else
 				{
 					if(playersTotal > dealersTotal)
 					{
 						//PlayerWins
-						cout << "Player Wins!\n";
+						cout << "Player Wins!\n\n";
 					}
 					else
 					{
 						//DealerWins
-						cout << "Dealer Wins!\n";
+						cout << "Dealer Wins!\n\n";
 					}
 				}
 			}
