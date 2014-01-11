@@ -7,9 +7,25 @@ using namespace std;
 
 struct Card
 {
-	string name;
+	string name; 
 	short value; // 0 for ace due to it being 1 or 11
 	string suit;
+};
+
+struct Player
+{
+	int bet;
+	int balance;
+	int pIndex;
+	int handTotal;
+	Card hand[12];
+};
+
+struct Dealer
+{
+	int dIndex;
+	int handTotal;
+	Card hand[12];
 };
 
 //Function Prototypes
@@ -55,6 +71,7 @@ const short NORMAL = 1;
 const short BLACKJACK = 2;
 const short BUST = 3;
 
+//Destroy all these start
 Card g_deck[NUM_OF_CARDS_IN_DECK]; // Create a global int array to contain the deck
 short g_positionInDeck;
 
@@ -64,6 +81,7 @@ Card g_dealersHand[10];
 short g_dealersCardCount;
 
 int g_playerMoney = 1000;
+//Destroy all these end
 
 int randomNumber(int minimum, int maximum)
 {
@@ -319,7 +337,11 @@ void mainGameLoop()
 	while(gameState == true)
 	{
 		//Betting System
-		
+		cout << "Your Current Balance:" << player.balance << endl;
+		cout << "Please enter your bet: ";
+		cin >> Bet;
+		//HERE
+
 		drawCards(2, PLAYER);
 		drawCards(2, DEALER);
 		// Screen update function
@@ -434,11 +456,11 @@ short dealersTurn()
 
 int main(void) 
 {
+	Player player;
 	
 	resetDeck();
 	resetHands();
 	shuffleDeck();
-
 	mainGameLoop();
 	
 	/* debug loop
