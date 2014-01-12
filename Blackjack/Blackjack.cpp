@@ -2,11 +2,14 @@
 #include <time.h>
 #include <array>
 #include <cstring>
+#include <string.h>
+#include <stdlib.h>
+#include <cstdlib>
 
 using namespace std;
 
 //Card Values
-const short ACE = 1;
+const short ACE = 11;
 const short FACECARD = 10;
 //Special Characters
 const char HEARTS = '\x03';
@@ -33,6 +36,12 @@ const short NORMAL = 1;
 const short BLACKJACK = 2;
 const short BUST = 3;
 
+//Validation Types
+const short MENU = 1;
+const short P_ACTION_CHECK = 2; //hit or stick validation
+const short BETTING = 3;
+
+//Stucture Declarations
 struct Card
 {
 	char name[6]; 
@@ -68,15 +77,14 @@ void drawCards(int,char, Deck &, Player &, Dealer &);
 int randomNumber(int,int);
 void resetDeck(Deck &);
 char suitSwitch(char);
-void checkForBlackjack(short);
+short checkForBlackjack(Player &, Dealer &);
 void mainGameLoop(Deck &, Player &, Dealer &);
 short playersTurn(Deck &, Player &, Dealer &);
 short dealersTurn(Deck &, Player &, Dealer &);
 int handTotal(Card,short);
 bool isBustCheck(int);
 void resetHands(Player &, Dealer &);
-void menuValidation(void);
-void actionValidation(void);
+short validation(short, Player &);
 void resetGame(Player &);
 
 
@@ -87,33 +95,46 @@ int main(void)
 
 	Player player;
 	Dealer dealer;
-
-	resetGame(player);
-	resetDeck(deck);
-	resetHands(player, dealer);
-	shuffleDeck(deck);
-	mainGameLoop(deck, player, dealer);
-
-	//cout << deck.cards[1].name << endl << deck.cards[1].value << endl << deck.cards[1].suit << endl ;
 	
-	/* debug loop
-	for (int i = 0; i < 52; i++)
+	bool running = true;
+	
+	while(running == true) 
 	{
-		cout << i << ", " << deck.cards[i].name << ", " << deck.cards[i].value << ", " << deck.cards[i].suit << endl;
+		cout << "Blackjack V1.0" << endl << "By: Richard Hancock" << endl;
+		cout << "\n\n1 - Play" << endl << "2 - Rules" << endl << "3 - Exit"<< endl;
+		cout << "Press the number for the option you want to access, followed by Enter." << endl;
+		short menuAction = 0;
+		menuAction = validation(MENU, player);
+		system("CLS");
+	
+		switch (menuAction)
+		{
+			case 1: //Play
+				resetGame(player);
+				resetDeck(deck);
+				resetHands(player, dealer);
+				shuffleDeck(deck);
+				mainGameLoop(deck, player, dealer);
+			break;
+
+			case 2:
+				cout << "Rules" << endl;
+				cout << "In blackjack the objectice is to get as close to 21 with out going over. You play against the dealer and must have a hand of cards higher than theirs to win." << endl;
+				cout << "The player places a bet on each round and if they win their bet is doubled, but if you win by a black jack (10 + Ace on first draw) you get a bonus." << endl;
+				cout << "The player has the option to Hit or Stand every round. Hitting gives the player another card, while standing sticks with the players current cards.\n"<< endl;
+			break;
+
+			case 3:
+				return 0;
+			break;
+
+			default:
+				cout << "FATAL ERROR: menu passed invalid menuAction var";
+			break;
+
+		}
 	}
-	
-	debug hand display
-	drawCards(2,PLAYER);
-	drawCards(2,DEALER);
-	cout << "Player Hand: "<< g_playersHand[0].name << ", " << g_playersHand[0].value << ", " <<  g_playersHand[0].suit << ";\n" << g_playersHand[1].name << ", " << g_playersHand[1].value << ", " << g_playersHand[1].suit << ";" << endl;
-	cout << "Dealer Hand: "<< g_dealersHand[0].name << ", " << g_dealersHand[0].value << ", " <<  g_dealersHand[0].suit << ";\n" << g_dealersHand[1].name << ", " << g_dealersHand[1].value << ", " << g_dealersHand[1].suit << ";" << endl;
-	*/
-	//Menu loop
-	//Cin plus validation
-	//Switch statement
-	//End Menu loop
-	
-	return 0;
+
 }
 
 int randomNumber(int minimum, int maximum)
@@ -124,13 +145,20 @@ int randomNumber(int minimum, int maximum)
 int handTotal(Card hand[], short cardCount)
 {	
 	short total = 0;
-	short currentCardNum = 0;
+	short aceCount = 0;
 
-	for(; currentCardNum < cardCount; currentCardNum++)
+	for(short currentCardNum = 0; currentCardNum < cardCount; currentCardNum++)
 	{
+		if (hand[currentCardNum].value == ACE)
+		{
+			aceCount++;
+		}
 		total += hand[currentCardNum].value;
 	}
-	
+	if (total > 21) 
+	{
+		total - (10 * aceCount);
+	}
 	return total;
 }
 
@@ -248,7 +276,7 @@ void resetHands(Player &player, Dealer &dealer)
 	player.numOfCards = 0;
 	dealer.numOfCards = 0;
 
-	player.bet;
+	player.bet = 0;
 }
 
 void shuffleDeck(Deck &deck)
@@ -277,34 +305,129 @@ void shuffleDeck(Deck &deck)
 	}
 }
 
-void checkForBlackjack(short whoseCard) //TODO
+short checkForBlackjack(Player &player, Dealer &dealer) //TODO
 {
-	/* TODO
-	switch (whoseCards)
+	bool playerBlackjack = false;
+	bool dealerBlackjack = false;
+
+	if (handTotal(player.hand, player.numOfCards) == 21) 
 	{
-		case PLAYER:
-			
+		playerBlackjack = true;
+	}
+	if (handTotal(dealer.hand, dealer.numOfCards) == 21) 
+	{
+		dealerBlackjack = true;
+	}
+
+	if (playerBlackjack == true && dealerBlackjack == true)
+	{
+		return 3; //Both have blackjack
+	}
+	else
+	{
+		if (playerBlackjack == true)
+		{
+			return PLAYER;
+		}
+		else
+		{
+			if (dealerBlackjack == true)
+			{
+				return DEALER;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+}
+
+short validation(short type, Player &player) 
+{	
+	bool Valid = false;
+	char toValidate[10];
+
+	switch (type) //See type definition constants at top of code
+	{
+		case MENU:
+			while (Valid == false) 
+			{
+				cin >> toValidate[0]; 
+				if (toValidate[0] == '1' || toValidate[0] == '2' || toValidate[0] == '3')
+				{
+					Valid = true;
+					return atoi(toValidate);
+				}
+			}
 		break;
+		case P_ACTION_CHECK:
+			while (Valid == false) 
+			{
+				cin >> toValidate;
 
-		case DEALER:
+				for(short i = 0; i <= strlen(toValidate); i++)
+				{
+					toValidate[i] = tolower(toValidate[i]);
+					
+				}
+				
+				if ((toValidate[0] == 'h') && 
+					(toValidate[1] == 'i') && 
+					(toValidate[2] == 't'))
+				{
+					Valid = true;
+					return HIT;
+				}
+				else
+				{
+					if ((toValidate[0] == 's') && 
+						(toValidate[1] == 't') && 
+						(toValidate[2] == 'a') && 
+						(toValidate[3] == 'n') &&  
+						(toValidate[4] == 'd'))
+					{
+						Valid = true;
+						return STAND;
+					}
+				}
 
+			}
 		break;
+		case BETTING:
+			while (Valid == false) 
+			{
+				cin >> toValidate;
+				
+				Valid = true; // Set intially to true, so that if a problem doesnt occur the loop will end
 
+				for (short j = 0; j < strlen(toValidate); j++)
+				{
+					if (toValidate[j] >= 47 && toValidate[j] >= 58) // if var is not a number in ASCII set
+					{
+						Valid = false;
+					}
+					
+				}
+				if (player.bet > player.balance)
+				{
+					Valid = false;
+				}
+				else
+				{
+					if (player.bet = 0)
+					{
+						Valid = false;
+					}
+				}
+			}
+			return atoi(toValidate);
+		break;
 		default:
-			cout << "FATAL ERROR: check for blackjack was passed invalid variable ("whoseCards")";
+			cout << "FATAL ERROR: Invalid type given to validation function" << endl;
+			return 0;
 		break;
 	}
-	*/
-}
-
-void menuValidation(void) 
-{
-
-}
-
-void actionValidation(void)
-{
-	
 }
 
 void drawCards(int amount, short toWho, Deck &deck, Player &player, Dealer &dealer)  
@@ -320,8 +443,6 @@ void drawCards(int amount, short toWho, Deck &deck, Player &player, Dealer &deal
 		case PLAYER:
 			for (int i = 0; i < amount; i++)
 			{
-				player.numOfCards++;
-
 				strcpy(player.hand[player.numOfCards].name, deck.cards[deck.posInDeck].name);
 				player.hand[player.numOfCards].value = deck.cards[deck.posInDeck].value;
 				player.hand[player.numOfCards].suit = deck.cards[deck.posInDeck].suit;
@@ -342,35 +463,25 @@ void drawCards(int amount, short toWho, Deck &deck, Player &player, Dealer &deal
 				}
 				
 				deck.posInDeck++;
+				player.numOfCards++;
 			}
 		break;
 
 		case DEALER:
 			for (int i = 0; i < amount; i++)
 			{
-				dealer.numOfCards++;
+				
 
 				strcpy(dealer.hand[dealer.numOfCards].name, deck.cards[deck.posInDeck].name);
 				dealer.hand[dealer.numOfCards].value = deck.cards[deck.posInDeck].value;
 				dealer.hand[dealer.numOfCards].suit = deck.cards[deck.posInDeck].suit;
 
-				if (i == 0) 
+				if(i == 0) //only displays the first card the dealers draws, but not second.
 				{
-					cout << "Dealer drew "; 
+				cout << "Dealer drew " << dealer.hand[dealer.numOfCards].name << " of " << dealer.hand[dealer.numOfCards].suit << endl;
 				}
-
-				cout << dealer.hand[dealer.numOfCards].name << " of " << dealer.hand[dealer.numOfCards].suit;
-
-				if (i < amount - 1)
-				{
-					cout << " and ";
-				}
-				else
-				{
-					cout << endl;
-				}
-
 				deck.posInDeck++;
+				dealer.numOfCards++;
 			}
 		break;
 		
@@ -401,52 +512,78 @@ void mainGameLoop(Deck &deck, Player &player, Dealer &dealer)
 		//Betting System
 		cout << "Your Current Balance:" << player.balance << endl;
 		cout << "Please enter your bet: ";
-		cin >> player.bet;
-		//HERE
+		player.bet = validation(BETTING, player);
+		player.balance -= player.bet;
+		system("CLS");
+
 
 		drawCards(2, PLAYER, deck, player, dealer);
 		drawCards(2, DEALER, deck, player, dealer);
-		// Screen update function
+		
+		short blackjackCheckResults = checkForBlackjack(player, dealer);
 
-		if (playersTurn(deck, player, dealer) == BUST)
+		if (blackjackCheckResults == 0) //If a Blackjack did not occur
 		{
-			cout << "Player busted, Dealer Wins!\n\n";
-		}
-		else
-		{
-			if (dealersTurn(deck, player, dealer) == BUST)
+			if (playersTurn(deck, player, dealer) == BUST) // If the player busted
 			{
-				cout << "Dealer busted, Player Wins!\n\n";
+				cout << "Player busted, Dealer Wins!\n\n";
 			}
 			else
 			{
-				short playersTotal = handTotal(player.hand, player.numOfCards);
-				short dealersTotal = handTotal(dealer.hand, dealer.numOfCards);
-
-				if(playersTotal == dealersTotal)
+				if (dealersTurn(deck, player, dealer) == BUST) // If the dealer busted
 				{
-					//Draw
-					cout << "Draw!\n\n";
+					cout << "Dealer busted, Player Wins!\n\n";
 				}
 				else
 				{
-					if(playersTotal > dealersTotal)
+					short playersTotal = handTotal(player.hand, player.numOfCards);
+					short dealersTotal = handTotal(dealer.hand, dealer.numOfCards);
+
+					if(playersTotal == dealersTotal)
 					{
-						//PlayerWins
-						cout << "Player Wins!\n\n";
+						//Draw
+						cout << "Draw!\n\n";
 					}
 					else
 					{
-						//DealerWins
-						cout << "Dealer Wins!\n\n";
+						if(playersTotal > dealersTotal)
+						{
+							//PlayerWins
+							cout << "Player Wins!\n\n";
+						}
+						else
+						{
+							//DealerWins
+							cout << "Dealer Wins!\n\n";
+						}
 					}
 				}
 			}
 		}
+		else
+		{
+			switch(blackjackCheckResults)
+			{
+				case PLAYER:
+					cout << "Blackjack! Player Wins!\n\n";
+					player.balance += (2.5 * player.bet);
+				break;
+
+				case DEALER:
+					cout << "Blackjack! Dealer Wins!\n\n";
+				break;
+
+				case 3: // Both
+					cout << "Two Blackjacks! It's a draw!\n\n";
+					player.balance += player.bet;
+				break;
+			}
+		}
+
 		resetHands(player, dealer);
-		if (deck.posInDeck > (NUM_OF_CARDS_IN_DECK - (MAX_NUM_OF_CARDS_IN_HAND * 2)) - 1) {
-			//Deck Finished
-			// TODO:RESTART GAME SMOOTH
+		if (deck.posInDeck > (NUM_OF_CARDS_IN_DECK - (MAX_NUM_OF_CARDS_IN_HAND * 2)) - 1) 
+		{
+			resetDeck(deck);
 			gameState = false;
 		}
 		
@@ -456,19 +593,19 @@ void mainGameLoop(Deck &deck, Player &player, Dealer &dealer)
 short playersTurn(Deck &deck, Player &player, Dealer &dealer)
 {
 	bool turnContinuing = true;
-	int playersCommand = 0;
+	short playersCommand = 0;
 
 	//blackjack check
 	while(turnContinuing == true)
 	{
 		cout << "Dealers Hand Total: " << dealer.hand[0].value << endl;
 		cout << "Your Hand Total: " << handTotal(player.hand, player.numOfCards) << endl;
-		cout << "Hit or Stand:\n";
-		cin >> playersCommand;
+		cout << "Hit or Stand:" << endl;
+		playersCommand = validation(P_ACTION_CHECK, player);
 		// Need input validation/conversion later
 		switch(playersCommand)
 		{
-			case 1:
+			case HIT:
 				//hit
 				drawCards(1,PLAYER, deck, player, dealer);
 				if(isBustCheck(handTotal(player.hand, player.numOfCards)) == true)
@@ -477,7 +614,7 @@ short playersTurn(Deck &deck, Player &player, Dealer &dealer)
 					return BUST;
 				}
 				break;
-			case 2:
+			case STAND:
 				//stand
 				turnContinuing = false;
 			break;
